@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({limit:'10mb', extended:true}));
 try {
   fs.readdirSync('./app/models').forEach(function (fileName) {
     if(fileName.indexOf('.js')>-1)
-      require(path.join('./app/models',fileName));
+      require(path.join(__dirname,'./app/models',fileName));
   });
 
   fs.readdirSync('./app/controllers').forEach(function (fileName) {

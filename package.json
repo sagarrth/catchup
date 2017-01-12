@@ -1,0 +1,24 @@
+{
+  "name": "demo-social-network",
+  "version": "1.0.0",
+  "description": "A demo application imitating a social network, using nodejs, express js and jade templating engine.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SagarRouth/demo-social-network.git"
+  },
+  "author": "Sagar Routh <sagarrouth0512@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SagarRouth/demo-social-network/issues"
+  },
+  "homepage": "https://github.com/SagarRouth/demo-social-network#readme",
+  "dependencies": {
+    "express": "^4.14.0",
+    "jade": "^1.11.0",
+    "mongoose": "^4.7.6"
+  }
+}

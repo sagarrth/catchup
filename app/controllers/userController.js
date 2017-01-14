@@ -8,6 +8,12 @@ var userModel         =   mongoose.model('User');
 var responseGenerator =   require('./../../libs/responseGenerator');
 
 function userController(app){
+
+  //get login screen
+  userRouter.get('/login/screen', function (req, res){
+    res.render('login');
+  });
+
   //signup API
   userRouter.post('/signup', function (req, res) {
     var response;

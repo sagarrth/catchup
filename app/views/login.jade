@@ -1,0 +1,19 @@
+html(lang=en)
+head
+  meta(charset='utf-8')
+  title Catch Up login
+body
+  section.container
+    .login
+      h1 Login to Catch Up!
+      form(method='post' action='/users/login')
+        div
+          input(type='text', name='email', value='', placeholder='Email')
+        div
+          input(type='password', name='password', value='', placeholder='Password')
+        div.submit
+          input(type='submit', name='', value='Login')
+    .login-help
+      p
+       | Forgot your password?
+       a(href='') Click here to reset it.

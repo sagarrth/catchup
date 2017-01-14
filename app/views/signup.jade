@@ -6,13 +6,13 @@ body
   section.container
     .login
       h1 Sign Up to Catch Up!
-      form(method='post' action='/0.1/users/signup')
+      form(method='post' action='http://localhost:3000/0.1/users/signup')
         div
           input(type='text', name='firstName', value='', placeholder='firstName', required='')
         div
           input(type='text', name='lastName', value='', placeholder='lastName', required='')
         div
-          input(type='number', name='mobile', value='', placeholder='mobile', required='')
+          input(type='number', name='mobileNumber', value='', placeholder='mobile', required='')
         div
           input(type='text', name='email', value='', placeholder='Email')
         div

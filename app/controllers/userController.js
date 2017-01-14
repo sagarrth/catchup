@@ -35,13 +35,21 @@ function userController(app){
       newUser.save(function (err) {
         if(err){
           response = responseGenerator.generate(true, err.message, 500, null);
+          res.render('error', {
+            message : response.message,
+            error   : response.data
+          });
         } else {
           response = responseGenerator.generate(false, "successfully signed up", 201, newUser);
+          res.render('dashboard', {user:newUser});
         }
-        res.send(response);
       });
     } else {
-      response = responseGenerator.generate(true, "some parameter missing", 400, null);
+        response = responseGenerator.generate(true, "some parameter missing", 400, null);
+        res.render('error', {
+          message : response.message,
+          error   : response.data
+        });
     }
   });
 

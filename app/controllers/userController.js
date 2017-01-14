@@ -8,10 +8,9 @@ var userModel         =   mongoose.model('User');
 var responseGenerator =   require('./../../libs/responseGenerator');
 
 function userController(app){
-
+  //signup API
   userRouter.post('/signup', function (req, res) {
     var response;
-    console.log('inside signup');
     if(req.body.firstName!==undefined && req.body.lastName!==undefined && req.body.email!==undefined && req.body.mobileNumber!==undefined && req.body.password!==undefined){
       var newUser = new userModel({
         userName        : req.body.firstName+''+req.body.lastName,
@@ -33,6 +32,21 @@ function userController(app){
     } else {
       response = responseGenerator.generate(true, "some parameter missing", 400, null);
     }
+  });
+
+  //login API
+  userRouter.post('/login', function (req, res) {
+    var response;
+    userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
+      if(err){
+        response = responseGenerator.generate(true, err.message, 500, null);
+      } else if(user===null || user===undefined){
+        response = responseGenerator.generate(true, 'user not found. Check your email and password', 404, null);
+      } else{
+        response = responseGenerator.generate(false, 'successfully logged in user', 200, user);
+      }
+      res.send(response);
+    });
   });
 
   userRouter.get('/all', function (req, res) {

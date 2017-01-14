@@ -6,8 +6,13 @@ var mongoose     =  require('mongoose');
 var logger       =  require('morgan');
 var fs           =  require('fs');
 var path         =  require('path');
+//var jade         =  require('jade');
 
 var app = express();
+//set templating engine
+app.set('view engine', 'jade');
+//set views folder
+app.set('views', path.join(__dirname, '/app/views'));
 
 //middleware for logging
 app.use(logger('dev'));
@@ -22,6 +27,8 @@ app.use(session({
   saveUnitialized :   true,
   cookie          :   {secure : false}
 }));
+//middleware for templating engine
+
 
 var dbPath = 'mongodb://localhost/catchupDb';
 //create a db connection

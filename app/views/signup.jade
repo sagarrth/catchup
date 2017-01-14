@@ -1,0 +1,21 @@
+html(lang=en)
+head
+  meta(charset='utf-8')
+  title Catch Up Sign Up
+body
+  section.container
+    .login
+      h1 Sign Up to Catch Up!
+      form(method='post' action='/0.1/users/signup')
+        div
+          input(type='text', name='firstName', value='', placeholder='firstName', required='')
+        div
+          input(type='text', name='lastName', value='', placeholder='lastName', required='')
+        div
+          input(type='number', name='mobile', value='', placeholder='mobile', required='')
+        div
+          input(type='text', name='email', value='', placeholder='Email')
+        div
+          input(type='password', name='password', value='', placeholder='Password')
+        div.submit
+          input(type='submit', name='', value='Sign Up')

@@ -14,6 +14,11 @@ function userController(app){
     res.render('login');
   });
 
+  //get sign up screen
+  userRouter.get('/signup/screen', function (req, res) {
+    res.render('signup');
+  });
+
   //signup API
   userRouter.post('/signup', function (req, res) {
     var response;

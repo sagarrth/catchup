@@ -1,14 +1,27 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
-var fs = require('fs');
-var path = require('path');
+var express      =  require('express');
+var bodyParser   =  require('body-parser');
+var cookieParser =  require('cookie-parser');
+var session      =  require('express-session');
+var mongoose     =  require('mongoose');
+var logger       =  require('morgan');
+var fs           =  require('fs');
+var path         =  require('path');
 
 var app = express();
 
+//middleware for logging
+app.use(logger('dev'));
 //middleware for processing incoming http-requests
 app.use(bodyParser.json({limit:'10mb', extended:true}));
 app.use(bodyParser.urlencoded({limit:'10mb', extended:true}));
+app.use(cookieParser());
+//middleware for session handling
+app.use(session({
+  secret          :   'myAppSecret',
+  resave          :   true,
+  saveUnitialized :   true,
+  cookie          :   {secure : false}
+}));
 
 var dbPath = 'mongodb://localhost/catchupDb';
 //create a db connection

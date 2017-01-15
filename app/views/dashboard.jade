@@ -1,9 +1,9 @@
 extends layout
 
 block content
-  h1 = title
+  h1= title
   p Hi #{user.firstName}
   p Your email is #{user.email}
   p Your mobile number is #{user.mobileNumber}
   p
-    a(href='/0.1/users/logout') Logout
+    a(href='http://localhost:3000/0.1/users/logout') Logout

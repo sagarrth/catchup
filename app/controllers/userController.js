@@ -1,11 +1,12 @@
-var mongoose =  require('mongoose');
-var express  =  require('express');
-var fs       =  require('fs');
-var path     =  require('path');
+var mongoose          =  require('mongoose');
+var express           =  require('express');
+var fs                =  require('fs');
+var path              =  require('path');
+var responseGenerator =  require('./../../libs/responseGenerator');
+var auth              =  require('./../../middleware/auth');
 
 var userRouter        =   express.Router();
 var userModel         =   mongoose.model('User');
-var responseGenerator =   require('./../../libs/responseGenerator');
 
 function userController(app){
 
@@ -40,8 +41,9 @@ function userController(app){
             error   : response.data
           });
         } else {
-          response = responseGenerator.generate(false, "successfully signed up", 201, newUser);
-          res.render('dashboard', {user:newUser});
+          req.session.user = newUser;
+          delete req.session.user.password;
+          res.redirect('/0.1/users/dashboard');
         }
       });
     } else {
@@ -65,6 +67,14 @@ function userController(app){
         response = responseGenerator.generate(false, 'successfully logged in user', 200, user);
       }
       res.send(response);
+    });
+  });
+
+  //dashboard route
+  userRouter.get('/dashboard', auth.checkLogin, function(req, res){
+    res.render('dashboard', {
+      title : 'Dashboard',
+      user : req.session.user
     });
   });
 

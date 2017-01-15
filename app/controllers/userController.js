@@ -59,17 +59,28 @@ function userController(app){
   userRouter.post('/login', function (req, res) {
     var response;
     userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
-      if(err){
+      if(err) {
         response = responseGenerator.generate(true, err.message, 500, null);
-      } else if(user===null || user===undefined){
+        res.render('error', {
+                  message: reesponse.message,
+                  error: response.data
+                });
+      } else if(user===null || user===undefined) {
         response = responseGenerator.generate(true, 'user not found. Check your email and password', 404, null);
-      } else{
-        response = responseGenerator.generate(false, 'successfully logged in user', 200, user);
+        res.render('error', {
+                  message: reesponse.message,
+                  error: response.data
+                });
+      } else {
+        //response = responseGenerator.generate(false, 'successfully logged in user', 200, user);
+        req.session.user = user;
+        delete req.session.user.password;
+        res.redirect('/0.1/users/dashboard');
       }
       res.send(response);
     });
   });
-
+  
   //dashboard route
   userRouter.get('/dashboard', auth.checkLogin, function(req, res){
     res.render('dashboard', {

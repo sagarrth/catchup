@@ -6,23 +6,31 @@ var mongoose     =  require('mongoose');
 var logger       =  require('morgan');
 var fs           =  require('fs');
 var path         =  require('path');
+var auth         =  require('./middleware/auth');
 
 var app = express();
+
 //set templating engine
 app.set('view engine', 'jade');
+
 //set views folder
 app.set('views', path.join(__dirname, '/app/views'));
 
 //middleware for logging
 app.use(logger('dev'));
+
 //middleware for processing incoming http-requests
 app.use(bodyParser.json({limit:'10mb', extended:true}));
 app.use(bodyParser.urlencoded({limit:'10mb', extended:true}));
 app.use(cookieParser());
+
 //middleware for session handling
+//initialization of session
 app.use(session({
+  name            :   'myCustomCookie',
   secret          :   'myAppSecret',
   resave          :   true,
+  httpOnly        :   true,
   saveUnitialized :   true,
   cookie          :   {secure : false}
 }));
@@ -48,8 +56,12 @@ try {
       route.controller(app);
     }
   });
+
+  //middleware for handling session 
+  app.use(auth.setLoggedInUser(mongoose.model('User')));
+
 } catch (error) {
-  console.log(error.message);
+  console.log(error);
 } finally {
   //start the server and listen on port 3000
   app.listen(3000, function () {

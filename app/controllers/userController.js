@@ -80,7 +80,7 @@ function userController(app){
       res.send(response);
     });
   });
-  
+
   //dashboard route
   userRouter.get('/dashboard', auth.checkLogin, function(req, res){
     res.render('dashboard', {
@@ -89,6 +89,13 @@ function userController(app){
     });
   });
 
+  //logout route
+  userRouter.get('/logout', function(req, res){
+      req.session.destroy(function(err) {
+        res.redirect('/0.1/users/login/screen');
+      });
+  });
+  
   userRouter.get('/all', function (req, res) {
     userModel.find({}, function (err, users) {
       if(err){

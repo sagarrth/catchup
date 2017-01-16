@@ -10,13 +10,19 @@ var userModel         =   mongoose.model('User');
 
 function userController(app){
 
+  //index page
+  userRouter.get('/index', function (req, res) {
+    console.log('inside index route');
+    res.render('index');
+  });
+
   //get login screen
-  userRouter.get('/login/screen', function (req, res){
+  userRouter.get('/login', function (req, res){
     res.render('login');
   });
 
   //get sign up screen
-  userRouter.get('/signup/screen', function (req, res) {
+  userRouter.get('/signup', function (req, res) {
     res.render('signup');
   });
 
@@ -95,7 +101,7 @@ function userController(app){
         res.redirect('/0.1/users/login/screen');
       });
   });
-  
+
   userRouter.get('/all', function (req, res) {
     userModel.find({}, function (err, users) {
       if(err){
@@ -111,7 +117,7 @@ function userController(app){
     res.send('this is a route to get information of a particular user.');
   });
 
-  app.use('/0.1/users', userRouter);
+  app.use('users', userRouter);
 }
 
 module.exports.controller = userController;

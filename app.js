@@ -57,14 +57,14 @@ try {
     }
   });
 
-  //middleware for handling session 
+  //middleware for handling session
   app.use(auth.setLoggedInUser(mongoose.model('User')));
 
 } catch (error) {
   console.log(error);
 } finally {
   //start the server and listen on port 3000
-  app.listen(3000, function () {
-    console.log('server started and listening on port 3000');
+  app.listen(4000, function () {
+    console.log('server started and listening on port 4000');
   });
 }

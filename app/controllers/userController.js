@@ -117,7 +117,7 @@ function userController(app){
     res.send('this is a route to get information of a particular user.');
   });
 
-  app.use('users', userRouter);
+  app.use('USERS', userRouter);
 }
 
 module.exports.controller = userController;

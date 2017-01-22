@@ -2,6 +2,8 @@ extends layout
 block content
   section.container-fluid
     h1.text-center Sign Up to Catch Up
+    if(error)
+      div(class='alert alert-danger')= error
     form(method='post')
       div(class='form-group')
         label(for='firstName') First Name

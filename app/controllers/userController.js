@@ -40,9 +40,9 @@ function userController(app){
       newUser.save(function (err) {
         if(err){
           response = responseGenerator.generate(true, err.message, 500, null);
-          res.render('error', {
-            message : response.message,
-            error   : response.data
+          res.render('signup', {
+            title   : 'Sign Up',
+            error   : response.message
           });
         } else {
           req.session.user = newUser;
@@ -53,8 +53,8 @@ function userController(app){
     } else {
         response = responseGenerator.generate(true, "some parameter missing", 400, null);
         res.render('error', {
-          message : response.message,
-          error   : response.data
+          title   : 'Sign Up',
+          error   : response.message
         });
     }
   });

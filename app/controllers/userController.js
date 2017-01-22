@@ -11,13 +11,17 @@ var userModel         =   mongoose.model('User');
 function userController(app){
 
   //get login screen
-  userRouter.get('/login/screen', function (req, res){
-    res.render('login');
+  userRouter.get('/login', function (req, res){
+    res.render('login',{
+      'title' : 'Login'
+    });
   });
 
   //get sign up screen
-  userRouter.get('/signup/screen', function (req, res) {
-    res.render('signup');
+  userRouter.get('/signup', function (req, res) {
+    res.render('signup',{
+      'title' : 'Sign Up'
+    });
   });
 
   //signup API
@@ -95,23 +99,8 @@ function userController(app){
         res.redirect('/0.1/users/login/screen');
       });
   });
-  
-  userRouter.get('/all', function (req, res) {
-    userModel.find({}, function (err, users) {
-      if(err){
-        console.log(err.message);
-      } else {
-        console.log(users);
-      }
-    });
-    res.send('this is a route to get all users. Db code to be written here.');
-  });
 
-  userRouter.get('/:userName', function (req, res) {
-    res.send('this is a route to get information of a particular user.');
-  });
-
-  app.use('/0.1/users', userRouter);
+  app.use('/users', userRouter);
 }
 
 module.exports.controller = userController;

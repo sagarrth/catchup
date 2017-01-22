@@ -57,8 +57,13 @@ try {
     }
   });
 
-  //middleware for handling session 
+  //middleware for handling session
   app.use(auth.setLoggedInUser(mongoose.model('User')));
+
+  //default route
+  app.get('/', function (req, res) {
+      return res.redirect('/users/login');
+  });
 
 } catch (error) {
   console.log(error);

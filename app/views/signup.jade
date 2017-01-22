@@ -2,20 +2,20 @@ extends layout
 block content
   section.container-fluid
     h1.text-center Sign Up to Catch Up
-    form(method='post' action='http://localhost:3000/users/signup')
+    form(method='post')
       div(class='form-group')
         label(for='firstName') First Name
-        input(class='form-control' type='text', id='firstName', value='', placeholder='First Name', required)
+        input(class='form-control' type='text', id='firstName', name='firstName', placeholder='First Name', required)
       div(class='form-group')
         label(for='lastName') Last Name
-        input(class='form-control' type='text', id='lastName', value='', placeholder='Last Name', required)
+        input(class='form-control' type='text', id='lastName', name='lastName', placeholder='Last Name', required)
       div(class='form-group')
         label(for='phone') Phone
-        input(class='form-control' type='number', id='phone', value='', placeholder='Phone No.', required)
+        input(class='form-control' type='number', id='phone', name='phone', placeholder='Phone No.', required)
       div(class='form-group')
         label(for='email') Email
-        input(class='form-control' type='email', id='email', value='', placeholder='Email' required)
+        input(class='form-control' type='email', id='email', name='email', placeholder='Email' required)
       div(class='form-group')
         label(for='password') Password
-        input(class='form-control' type='password', id='password', value='', placeholder='Password' required)
+        input(class='form-control' type='password', id='password', name='password', placeholder='Password' required)
       button(class='btn btn-primary', type='Submit', value='Sign Up') Sign Up

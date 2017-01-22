@@ -4,13 +4,13 @@ block content
     header(class='text-center' style='margin:auto;')
       h1 Login to Catch Up
     .form-container
-      form(method='post' action='http://localhost:3000/users/login')
+      form(method='post')
         div(class='form-group')
           label(for='email') Email
-          input(class='form-control' type='email', id='email', value='', placeholder='Email')
+          input(class='form-control' type='email', id='email', name='email', placeholder='Email')
         div(class='form-group')
           label(for='password') Password
-          input(class='form-control' type='password', id='password', value='', placeholder='Password')
+          input(class='form-control' type='password', id='password', name='password', placeholder='Password')
         button(class='btn btn-primary' type='submit', name='') Login
     div(class='text-center login-help')
       p

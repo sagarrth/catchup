@@ -3,6 +3,8 @@ block content
   section.container-fluid
     header(class='text-center' style='margin:auto;')
       h1 Login to Catch Up
+    if error
+      div(class='alert alert-danger')= error
     .form-container
       form(method='post')
         div(class='form-group')

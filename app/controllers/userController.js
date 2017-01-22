@@ -27,13 +27,13 @@ function userController(app){
   //signup API
   userRouter.post('/signup', function (req, res) {
     var response;
-    if(req.body.firstName!==undefined && req.body.lastName!==undefined && req.body.email!==undefined && req.body.mobileNumber!==undefined && req.body.password!==undefined){
+    if(req.body.firstName!==undefined && req.body.lastName!==undefined && req.body.email!==undefined && req.body.phone!==undefined && req.body.password!==undefined){
       var newUser = new userModel({
         userName        : req.body.firstName+''+req.body.lastName,
         firstName       : req.body.firstName,
         lastName        : req.body.lastName,
         email           : req.body.email,
-        mobileNumber    : req.body.mobileNumber,
+        phone           : req.body.phone,
         password        : req.body.password
       });
 
@@ -47,7 +47,7 @@ function userController(app){
         } else {
           req.session.user = newUser;
           delete req.session.user.password;
-          res.redirect('/0.1/users/dashboard');
+          res.redirect('/users/dashboard');
         }
       });
     } else {
@@ -65,23 +65,21 @@ function userController(app){
     userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
       if(err) {
         response = responseGenerator.generate(true, err.message, 500, null);
-        res.render('error', {
-                  message: reesponse.message,
-                  error: response.data
+        res.render('login', {
+                  title: 'Login',
+                  error: response.message
                 });
       } else if(user===null || user===undefined) {
-        response = responseGenerator.generate(true, 'user not found. Check your email and password', 404, null);
-        res.render('error', {
-                  message: reesponse.message,
-                  error: response.data
+        response = responseGenerator.generate(true, 'Check your email and password', 404, null);
+        res.render('login', {
+                  title: 'Login',
+                  error: response.message
                 });
       } else {
-        //response = responseGenerator.generate(false, 'successfully logged in user', 200, user);
         req.session.user = user;
         delete req.session.user.password;
-        res.redirect('/0.1/users/dashboard');
+        res.redirect('/users/dashboard');
       }
-      res.send(response);
     });
   });
 

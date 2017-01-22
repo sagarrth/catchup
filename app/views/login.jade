@@ -1,19 +1,18 @@
-html(lang=en)
-head
-  meta(charset='utf-8')
-  title Catch Up login
-body
+extends layout
+block content
   section.container
-    .login
+    header(class='text-center')
       h1 Login to Catch Up!
+    .form-container
       form(method='post' action='http://localhost:3000/0.1/users/login')
-        div
-          input(type='text', name='email', value='', placeholder='Email')
-        div
-          input(type='password', name='password', value='', placeholder='Password')
-        div.submit
-          input(type='submit', name='', value='Login')
-    .login-help
+        div(class='form-group')
+          label(for='email') Email
+          input(class='form-control' type='email', id='email', value='', placeholder='Email')
+        div(class='form-group')
+          label(for='password') Password
+          input(class='form-control' type='password', id='password', value='', placeholder='Password')
+        button(class='btn btn-primary' type='submit', name='') Login
+    div(class='text-center login-help')
       p
        | Forgot your password?
        a(href='') Click here to reset it.

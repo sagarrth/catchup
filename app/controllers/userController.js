@@ -88,25 +88,6 @@ function userController(app){
         message   : response.message
       }); 
     }
-    /*userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
-      if(err) {
-        response = responseGenerator.generate(true, err.message, 500, null);
-        res.render('login', {
-                  title: 'Login',
-                  error: response.message
-                });
-      } else if(user===null || user===undefined) {
-        response = responseGenerator.generate(true, 'Check your email and password', 404, null);
-        res.render('login', {
-                  title: 'Login',
-                  error: response.message
-                });
-      } else {
-        req.session.user = user;
-        delete req.session.user.password;
-        res.redirect('/users/dashboard');
-      }
-    });*/
   });
 
   //dashboard route

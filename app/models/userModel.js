@@ -7,7 +7,7 @@ var userSchema = new Schema({
   firstName       : {type:String, default:''},
   lastName        : {type:String, default:''},
   email           : {type:String, default:''},
-  phone           : {type:String, default:''},
+  phone           : {type:Number, default:''},
   password        : {type:String, default:''}
 });
 

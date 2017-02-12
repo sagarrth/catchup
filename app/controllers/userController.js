@@ -101,7 +101,7 @@ function userController(app){
   //logout route
   userRouter.get('/logout', function(req, res){
       req.session.destroy(function(err) {
-        res.redirect('/users/login/screen');
+        res.redirect('/users/login');
       });
   });
 

@@ -1,14 +1,14 @@
-var express      =  require('express');
-var bodyParser   =  require('body-parser');
-var cookieParser =  require('cookie-parser');
-var session      =  require('express-session');
-var mongoose     =  require('mongoose');
-var logger       =  require('morgan');
-var fs           =  require('fs');
-var path         =  require('path');
-var auth         =  require('./middleware/auth');
+var express      =    require('express');
+var bodyParser   =    require('body-parser');
+var cookieParser =    require('cookie-parser');
+var session      =    require('express-session');
+var mongoose     =    require('mongoose');
+var logger       =    require('morgan');
+var fs           =    require('fs');
+var path         =    require('path');
+var auth         =    require('./middleware/auth');
 
-var app = express();
+var app          =    express();
 
 //set templating engine
 app.set('view engine', 'jade');
@@ -28,7 +28,7 @@ app.use(cookieParser());
 //initialization of session
 app.use(session({
   name            :   'myCustomCookie',
-  secret          :   'myAppSecret',
+  secret          :   'awesomeApp',
   resave          :   true,
   httpOnly        :   true,
   saveUnitialized :   true,

@@ -68,12 +68,12 @@ function userController(app){
           response = responseGenerator.generate(true, error.message, error.status, null);
           res.render('error', {
             title   : 'Login',
-            error   : response.message
+            message   : response.message
           }); 
         } else if(!user) {
           res.render('error', {
             title   : 'Login',
-            error   : 'Incorrect password'
+            message   : 'Incorrect password'
           }); 
         } else {
           req.session.user = user;
@@ -85,7 +85,7 @@ function userController(app){
       response = responseGenerator.generate(true, "some parameter missing", 400, null);
       res.render('error', {
         title   : 'Login',
-        error   : response.message
+        message   : response.message
       }); 
     }
     /*userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {

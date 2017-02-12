@@ -22,7 +22,7 @@ function setLoggedInUser(userModel) {
 
 function checkLogin(req, res, next){
   if(!req.user && !req.session.user){
-    res.redirect('/0.1/users/login/screen');
+    res.redirect('/users/login/screen');
   } else {
     next();
   }

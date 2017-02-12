@@ -12,6 +12,35 @@ const UserSchema = new Schema({
   password        : {type:String, required:true}
 });
 
+
+//verify if user exists and if exists the password is correct
+UserSchema.statics.authenticate = function (email, password, cb) {
+	userModel.findOne({email: email})
+		.exec(function (error, user) {
+			if(error) {
+				cb(error);
+			} else if(!user) {
+				let err = new Error('User not found!');
+				err.status = 401;
+				cb(err);
+			} else {
+				bcrypt.compare(password, user.password, function(error, result){
+					if(error) {
+						cb(error);
+					} else { 
+						if(result===true){
+							cb(null, user);
+						} else {
+							cb();
+						}
+					}
+				});
+			}
+		});	
+};
+
+
+//hash password before saving
 UserSchema.pre('save', function (next) {
 	let user = this;
 	bcrypt.hash(user.password, 5, function (err, hash) {
@@ -22,4 +51,4 @@ UserSchema.pre('save', function (next) {
 	});
 });
 
-mongoose.model('User', UserSchema);
+const userModel = mongoose.model('User', UserSchema);

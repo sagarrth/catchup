@@ -61,8 +61,34 @@ function userController(app){
 
   //login API
   userRouter.post('/login', function (req, res) {
-    var response;
-    userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
+    let response;
+    if(req.body.email && req.body.password){
+      userModel.authenticate(req.body.email, req.body.password, function (error, user) {
+        if(error){
+          response = responseGenerator.generate(true, error.message, error.status, null);
+          res.render('error', {
+            title   : 'Login',
+            error   : response.message
+          }); 
+        } else if(!user) {
+          res.render('error', {
+            title   : 'Login',
+            error   : 'Incorrect password'
+          }); 
+        } else {
+          req.session.user = user;
+          delete req.session.user.password;
+          res.redirect('/users/dashboard');
+        }
+      });
+    } else {
+      response = responseGenerator.generate(true, "some parameter missing", 400, null);
+      res.render('error', {
+        title   : 'Login',
+        error   : response.message
+      }); 
+    }
+    /*userModel.findOne({$and:[{'email':req.body.email},{'password':req.body.password}]}, function (err, user) {
       if(err) {
         response = responseGenerator.generate(true, err.message, 500, null);
         res.render('login', {
@@ -80,7 +106,7 @@ function userController(app){
         delete req.session.user.password;
         res.redirect('/users/dashboard');
       }
-    });
+    });*/
   });
 
   //dashboard route
@@ -94,7 +120,7 @@ function userController(app){
   //logout route
   userRouter.get('/logout', function(req, res){
       req.session.destroy(function(err) {
-        res.redirect('/0.1/users/login/screen');
+        res.redirect('/users/login/screen');
       });
   });
 

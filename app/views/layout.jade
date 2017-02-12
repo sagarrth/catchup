@@ -5,8 +5,7 @@ html
     meta(charset='utf-8')
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
-    script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js')
-    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
+    
     style.
        .form-container {
           margin: auto
@@ -19,24 +18,19 @@ html
             margin-top: 40px;
             padding-top: 20px;
         }
+  
   body
-    nav(class='navbar navbar-inverse')
-      .container-fluid
-        .navbar-header
-          a(class='navbar-brand' href='#') Catch Up!
-        ul(class='nav navbar-nav navbar-right')
-          li
-            a(href='signup')
-              span(class='glyphicon glyphicon-user')
-              |  Sign Up
-          li
-            a(href='login')
-              span(class='glyphicon glyphicon-log-in')
-              |  Login
+    
+    include navbar
+
     block content
+
     footer
       div(class='credits text-center')
         p
           a(href='https://github.com/SagarRouth/catchup') View the code for this app on GitHub
         p
           a(href='http://github.com/SagarRouth') My GitHub Profile
+
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js')
+    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')

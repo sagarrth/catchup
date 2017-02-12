@@ -35,6 +35,15 @@ app.use(session({
   cookie          :   {secure : false}
 }));
 
+//make the userId available to the templates
+app.use(function (req, res, next) {
+  if(req.session.user && req.session.user._id)
+    res.locals.currentUser = true;
+  else
+    res.locals.currentUser = false;
+  next();
+});
+
 var dbPath = 'mongodb://localhost/catchupDb';
 //create a db connection
 mongoose.connect(dbPath);

@@ -1,12 +1,13 @@
-var mongoose          =  require('mongoose');
-var express           =  require('express');
-var fs                =  require('fs');
-var path              =  require('path');
-var responseGenerator =  require('./../../libs/responseGenerator');
-var auth              =  require('./../../middleware/auth');
+const mongoose          =  require('mongoose');
+const express           =  require('express');
+const fs                =  require('fs');
+const path              =  require('path');
+const responseGenerator =  require('./../../libs/responseGenerator');
+const auth              =  require('./../../middleware/auth');
+const validator         =  require('./../../middleware/validator');
 
-var userRouter        =   express.Router();
-var userModel         =   mongoose.model('User');
+const userRouter        =   express.Router();
+const userModel         =   mongoose.model('User');
 
 function userController(app){
 
@@ -25,9 +26,10 @@ function userController(app){
   });
 
   //signup API
-  userRouter.post('/signup', function (req, res) {
-    var response;
-    if(req.body.firstName!==undefined && req.body.lastName!==undefined && req.body.email!==undefined && req.body.phone!==undefined && req.body.password!==undefined){
+  userRouter.post('/signup', validator, (req, res, next) => {
+    var response = req.response;
+    if(!response){
+      console.log('no response from validator');
       var newUser = new userModel({
         userName        : req.body.firstName+''+req.body.lastName,
         firstName       : req.body.firstName,
@@ -39,6 +41,7 @@ function userController(app){
 
       newUser.save(function (err) {
         if(err){
+          console.log(err, 'error occurred while saving document');
           response = responseGenerator.generate(true, err.message, 500, null);
           res.render('signup', {
             title   : 'Sign Up',
@@ -50,19 +53,21 @@ function userController(app){
           res.redirect('/users/dashboard');
         }
       });
+  
     } else {
-        response = responseGenerator.generate(true, "some parameter missing", 400, null);
-        res.render('error', {
-          title   : 'Sign Up',
-          error   : response.message
-        });
+      console.log('error response from validator');
+      res.render('signup', {
+        title   : 'Sign Up',
+        error   : response.message
+      });
     }
+        
   });
 
   //login API
-  userRouter.post('/login', function (req, res) {
-    let response;
-    if(req.body.email && req.body.password){
+  userRouter.post('/login', validator, function (req, res, next) {
+    let response = req.response;
+    if(!response){
       userModel.authenticate(req.body.email, req.body.password, function (error, user) {
         if(error){
           response = responseGenerator.generate(true, error.message, error.status, null);
@@ -71,9 +76,9 @@ function userController(app){
             message   : response.message
           }); 
         } else if(!user) {
-          res.render('error', {
+          res.render('login', {
             title   : 'Login',
-            message   : 'Incorrect password'
+            error   : 'Incorrect password'
           }); 
         } else {
           req.session.user = user;
@@ -82,10 +87,9 @@ function userController(app){
         }
       });
     } else {
-      response = responseGenerator.generate(true, "some parameter missing", 400, null);
-      res.render('error', {
+      res.render('login', {
         title   : 'Login',
-        message   : response.message
+        error   : response.message
       }); 
     }
   });

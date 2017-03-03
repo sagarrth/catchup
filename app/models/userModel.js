@@ -43,7 +43,8 @@ UserSchema.statics.authenticate = (email, password, cb) => {
 
 
 //hash password before saving
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', function(next){
+	console.log('inside pre save hook');
 	let user = this;
 	bcrypt.hash(user.password, 5, (err, hash) => {
 		if(err)

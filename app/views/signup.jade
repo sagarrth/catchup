@@ -7,7 +7,7 @@ block content
         h1.text-center Sign Up to Catch Up
         if(error)
           div(class='alert alert-danger')= error
-        form(method='post')
+        form(method='post' novalidate)
           div(class='form-group')
             label(for='firstName') First Name
             input(class='form-control' type='text', id='firstName', name='firstName', placeholder='First Name', required)

@@ -1,9 +1,7 @@
 const mongoose 	= 	require('mongoose');
 const bcrypt	=	require('bcryptjs');
 
-const Schema = mongoose.Schema;
-
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
   userName        : {type:String, unique:true, required:true, trim:true},
   firstName       : {type:String, required:true, trim:true},
   lastName        : {type:String, required:true, trim:true},
@@ -14,17 +12,20 @@ const UserSchema = new Schema({
 
 
 //verify if user exists and if exists the password is correct
-UserSchema.statics.authenticate = function (email, password, cb) {
-	userModel.findOne({email: email})
-		.exec(function (error, user) {
-			if(error) {
-				cb(error);
-			} else if(!user) {
+UserSchema.statics.authenticate = (email, password, cb) => {	
+	userModel.findOne({email: email}).exec((err, user) => {
+		if(err){
+			console.log(err);
+			cb(err);
+		} else {
+			if(!user){
+				console.log('No user found');
 				let err = new Error('User not found!');
 				err.status = 401;
 				cb(err);
 			} else {
-				bcrypt.compare(password, user.password, function(error, result){
+				console.log('user found');
+				bcrypt.compare(password, user.password, (error, result)=>{
 					if(error) {
 						cb(error);
 					} else { 
@@ -36,14 +37,15 @@ UserSchema.statics.authenticate = function (email, password, cb) {
 					}
 				});
 			}
-		});	
+		}
+	});	
 };
 
 
 //hash password before saving
-UserSchema.pre('save', function (next) {
+UserSchema.pre('save', (next) => {
 	let user = this;
-	bcrypt.hash(user.password, 5, function (err, hash) {
+	bcrypt.hash(user.password, 5, (err, hash) => {
 		if(err)
 			next(err);
 		user.password = hash;

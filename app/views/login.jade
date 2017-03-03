@@ -8,7 +8,7 @@ block content
         if error
           div(class='alert alert-danger')= error
         .form-container
-          form(method='post')
+          form(method='post' novalidate)
             div(class='form-group')
               label(for='email') Email
               input(class='form-control' type='email', id='email', name='email', placeholder='Email')

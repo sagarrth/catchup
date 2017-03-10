@@ -1,14 +1,15 @@
-var express      =    require('express');
-var bodyParser   =    require('body-parser');
-var cookieParser =    require('cookie-parser');
-var session      =    require('express-session');
-var mongoose     =    require('mongoose');
-var logger       =    require('morgan');
-var fs           =    require('fs');
-var path         =    require('path');
-var auth         =    require('./middleware/auth');
+const express       =    require('express');
+const bodyParser    =    require('body-parser');
+const cookieParser  =    require('cookie-parser');
+const session       =    require('express-session');
+const mongoose      =    require('mongoose');
+const logger        =    require('morgan');
+const customLogger  =    require('./libs/customLogger');
+const fs            =    require('fs');
+const path          =    require('path');
+const auth          =    require('./middleware/auth');
 
-var app          =    express();
+const app           =    express();
 
 //set templating engine
 app.set('view engine', 'jade');
@@ -27,12 +28,12 @@ app.use(cookieParser());
 //middleware for session handling
 //initialization of session
 app.use(session({
-  name            :   'myCustomCookie',
-  secret          :   'awesomeApp',
-  resave          :   true,
-  httpOnly        :   true,
-  saveUnitialized :   true,
-  cookie          :   {secure : false}
+  name               :   'myCustomCookie',
+  secret             :   'awesomeApp',
+  resave             :   true,
+  httpOnly           :   true,
+  saveUninitialized  :   true,
+  cookie             :   {secure : false}
 }));
 
 //make the userId available to the templates
@@ -48,7 +49,7 @@ var dbPath = 'mongodb://localhost/catchupDb';
 //create a db connection
 mongoose.connect(dbPath);
 mongoose.connection.once('open', function () {
-  console.log("database connection opened");
+  customLogger('Info', 'Entry Point', __filename, 'database connection opened');
 });
 
 try {
@@ -70,8 +71,15 @@ try {
   app.use(auth.setLoggedInUser(mongoose.model('User')));
 
   //default route
+  /*
   app.get('/', function (req, res) {
       return res.redirect('/users/login');
+  });*/
+
+  app.use((err, req, res, next) => {
+    console.log('error handler-', err);
+    res.status(err.status);
+    res.send(err);
   });
 
 } catch (error) {
@@ -79,6 +87,6 @@ try {
 } finally {
   //start the server and listen on port 3000
   app.listen(3000, function () {
-    console.log('server started and listening on port 3000');
+    customLogger('Info', 'Entry Point', __filename, 'server started and listening on port 3000');
   });
 }

@@ -1,4 +1,15 @@
-var mongoose  =  require('mongoose');
+const mongoose  =  require('mongoose');
+const responseGenerator =  require('./../libs/responseGenerator');
+
+function checkAdmin(req, res, next) {
+  if(req.session && req.session.user && req.session.user.type==='admin'){
+    next();
+  } else {
+    let errResponse = responseGenerator.generate(true, 'Insufficient Access', 401, null);
+    next(errResponse);
+  }
+}
+
 
 function setLoggedInUser(userModel) {
   return function(req, res, next){
@@ -20,13 +31,15 @@ function setLoggedInUser(userModel) {
   };
 }
 
-function checkLogin(req, res, next){
+function checkLoggedIn(req, res, next){
   if(!req.user && !req.session.user){
-    res.redirect('/users/login/screen');
+    let errResponse = responseGenerator.generate(true, 'User not in session', 401, null);
+    next(errResponse);
   } else {
     next();
   }
 }
 
 module.exports.setLoggedInUser = setLoggedInUser;
-module.exports.checkLogin = checkLogin;
+module.exports.checkLoggedIn = checkLoggedIn;
+module.exports.checkAdmin = checkAdmin;

@@ -1,113 +1,112 @@
-const mongoose          =  require('mongoose');
-const express           =  require('express');
-const fs                =  require('fs');
-const path              =  require('path');
-const responseGenerator =  require('./../../libs/responseGenerator');
-const auth              =  require('./../../middleware/auth');
-const validator         =  require('./../../middleware/validator');
-
+const mongoose          =   require('mongoose');
+const express           =   require('express');
+const fs                =   require('fs');
+const path              =   require('path');
+const responseGenerator =   require('./../../libs/responseGenerator');
+const auth              =   require('./../../middleware/auth');
+const validate          =   require('./../../middleware/validator');
+const customLogger      =   require('./../../libs/customLogger');
+const shortid           =   require('shortid');
 const userRouter        =   express.Router();
-const userModel         =   mongoose.model('User');
+const users             =   mongoose.model('User');
 
 function userController(app){
 
-  //get login screen
-  userRouter.get('/login', function (req, res){
-    res.render('login',{
-      'title' : 'Login'
+  //route to signup
+  userRouter.post('/signup', validate('user'), (req, res, next) => {
+    let newUser = {
+      firstName :   req.body.firstName,
+      lastName  :   req.body.lastName,
+      email     :   req.body.email,
+      password  :   req.body.password,
+      phone     :   req.body.phone
+    };
+    newUser.userName = req.body.firstName+shortid.generate();
+    req.body.type ? (newUser.type = req.body.type) : '';
+    users.create( newUser, (err, user) => {
+      if(err) {
+        customLogger('Error', 'Controller', __filename, err.stack);
+        let errResponse = responseGenerator.generate(true, err.message, 500, null);
+        next(errResponse);
+      } else {
+        customLogger('Info', 'Controller', __filename, 'User successfully added to database');
+        delete user.password;
+        req.session.user = user;
+        res.send(responseGenerator.generate(false, 'User successfully added to database', 200, user));
+      }
     });
   });
 
-  //get sign up screen
-  userRouter.get('/signup', function (req, res) {
-    res.render('signup',{
-      'title' : 'Sign Up'
+  //route to login
+  userRouter.post('/login', validate('user'), (req, res, next) => {
+    users.authenticate(req.body.email, req.body.password, (err, user) => {
+      if(err) {
+        customLogger('Error', 'Controller', __filename, err.stack);
+        let errResponse = responseGenerator.generate(true, err.message, 500, null);
+        next(errResponse);
+      } else {
+        customLogger('Info', 'Controller', __filename, 'User successfully logged in');
+        delete user.password;
+        req.session.user = user;
+        res.send(responseGenerator.generate(false, 'User successfully logged in', 200, user));
+      }
     });
   });
 
-  //signup API
-  userRouter.post('/signup', validator, (req, res, next) => {
-    var response = req.response;
-    if(!response){
-      console.log('no response from validator');
-      var newUser = new userModel({
-        userName        : req.body.firstName+''+req.body.lastName,
-        firstName       : req.body.firstName,
-        lastName        : req.body.lastName,
-        email           : req.body.email,
-        phone           : req.body.phone,
-        password        : req.body.password
-      });
+  //route to do profile operations
+  userRouter.route('/profile')
+  //for all routes under profile, its protected and authentication is required
+  .all(auth.checkLoggedIn)
+  //route to get the profile details of an user
+  .get((req, res, next) => {
+    users.findById(req.session.user._id, (err, user) => {
+      if(err) {
+        customLogger('Error', 'Controller', __filename, err.stack);
+        let errResponse = responseGenerator.generate(true, err.message, 500, null);
+        next(errResponse);
+      } else {
+        delete user.password;
+        customLogger('Info', 'Controller', __filename, 'Profile Details');
+        res.send(responseGenerator.generate(false, 'Profile Details', 200, user));
+      }
+    });
+  })
+  //route to edit the profile details of an user
+  .put((req, res, next) => {
+    const updateObj = {};
+    for(let i in req.body) {
+      if(i!=='email' && i!=='userName') {
+        updateObj[i] = req.body[i];
+      }
+    }
+    users.findByIdAndUpdate(req.session.user._id, updateObj, {new:true}, (err, user) => {
+      if(err) {
+        customLogger('Error', 'Controller', __filename, err.stack);
+        let errResponse = responseGenerator.generate(true, err.message, 500, null);
+        next(errResponse);
+      } else {
+        delete user.password;
+        customLogger('Info', 'Controller', __filename, 'Edited Profile Details');
+        res.send(responseGenerator.generate(false, 'Edited Profile Details', 200, user));
+      }
+    });
+  });
 
-      newUser.save(function (err) {
-        if(err){
-          console.log(err, 'error occurred while saving document');
-          response = responseGenerator.generate(true, err.message, 500, null);
-          res.render('signup', {
-            title   : 'Sign Up',
-            error   : response.message
-          });
+  //route to logout
+  userRouter.get('/logout', function(req, res, next){
+      req.session.destroy( (err) => {
+        if(err) {
+          customLogger('Error', 'Controller', __filename, err.stack);
+          let errResponse = responseGenerator.generate(true, err.message, 500, null);
+          next(errResponse); 
         } else {
-          req.session.user = newUser;
-          delete req.session.user.password;
-          res.redirect('/users/dashboard');
+          customLogger('Info', 'Controller', __filename, 'User Logged Out');
+          res.send(responseGenerator.generate(false, 'User Logged Out', 200, null));
         }
       });
-  
-    } else {
-      console.log('error response from validator');
-      res.render('signup', {
-        title   : 'Sign Up',
-        error   : response.message
-      });
-    }
-        
   });
 
-  //login API
-  userRouter.post('/login', validator, function (req, res, next) {
-    let response = req.response;
-    if(!response){
-      userModel.authenticate(req.body.email, req.body.password, function (error, user) {
-        if(error){
-          response = responseGenerator.generate(true, error.message, error.status, null);
-          res.render('error', {
-            title   : 'Login',
-            message   : response.message
-          }); 
-        } else if(!user) {
-          res.render('login', {
-            title   : 'Login',
-            error   : 'Incorrect password'
-          }); 
-        } else {
-          req.session.user = user;
-          delete req.session.user.password;
-          res.redirect('/users/dashboard');
-        }
-      });
-    } else {
-      res.render('login', {
-        title   : 'Login',
-        error   : response.message
-      }); 
-    }
-  });
-
-  //dashboard route
-  userRouter.get('/dashboard', auth.checkLogin, function(req, res){
-    res.render('dashboard', {
-      title : 'Dashboard',
-      user : req.session.user
-    });
-  });
-
-  //logout route
-  userRouter.get('/logout', function(req, res){
-      req.session.destroy(function(err) {
-        res.redirect('/users/login');
-      });
-  });
+  //userRouter.post('/forgotPassword', )
 
   app.use('/users', userRouter);
 }

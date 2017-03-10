@@ -1,13 +1,15 @@
 const mongoose 	= 	require('mongoose');
 const bcrypt	=	require('bcryptjs');
+const customLogger = require('./../../libs/customLogger');
 
 const UserSchema = new mongoose.Schema({
-  userName        : {type:String, unique:true, required:true, trim:true},
+  userName        : {type:String, unique:true, trim:true},
   firstName       : {type:String, required:true, trim:true},
   lastName        : {type:String, required:true, trim:true},
   email           : {type:String, unique:true, required:true, trim:true},
   phone           : {type:Number, unique:true, required:true, trim:true},
-  password        : {type:String, required:true}
+  password        : {type:String, required:true},
+  type			  : {type:String, default:'standard'}
 });
 
 
@@ -15,24 +17,31 @@ const UserSchema = new mongoose.Schema({
 UserSchema.statics.authenticate = (email, password, cb) => {	
 	userModel.findOne({email: email}).exec((err, user) => {
 		if(err){
-			console.log(err);
-			cb(err);
+			err.status = 500;
+			customLogger('Error', 'Model', __filename, err.stack);
+			cb(err, null);
 		} else {
 			if(!user){
-				console.log('No user found');
-				let err = new Error('User not found!');
+				customLogger('Info', 'Model', __filename, 'User not found in db');
+				let err = new Error('User not found in db');
 				err.status = 401;
-				cb(err);
+				cb(err, null);
 			} else {
-				console.log('user found');
+				customLogger('Info', 'Model', __filename, 'User found in db');
 				bcrypt.compare(password, user.password, (error, result)=>{
-					if(error) {
-						cb(error);
+					if(err) {
+						err.status = 500;
+						customLogger('Error', 'Model', __filename, err.stack);
+						cb(err, null);
 					} else { 
 						if(result===true){
+							customLogger('Info', 'Model', __filename, 'Password matched');
 							cb(null, user);
 						} else {
-							cb();
+							customLogger('Info', 'Model', __filename, 'Wrong Password');
+							let err = new Error('Wrong Password');
+							err.status=401;
+							cb(err, null);
 						}
 					}
 				});
@@ -44,11 +53,13 @@ UserSchema.statics.authenticate = (email, password, cb) => {
 
 //hash password before saving
 UserSchema.pre('save', function(next){
-	console.log('inside pre save hook');
 	let user = this;
 	bcrypt.hash(user.password, 5, (err, hash) => {
-		if(err)
+		if(err){
+			customLogger('Error', 'Model', __filename, 'Error while hashing password');
 			next(err);
+		}
+		customLogger('Info', 'Model', __filename, 'Password hashed before saving');
 		user.password = hash;
 		next();
 	});

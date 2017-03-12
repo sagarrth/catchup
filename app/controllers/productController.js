@@ -15,6 +15,7 @@ function productController(app){
 		2.unrestricted route for viewing the list of products
 	**/
 	productRouter.route('/')
+	//in this route we are just interested in the list of products, so not fetching the reviewer's details
 	.get((req, res, next) => {
 		products.find({}, (err, products) => {
 			if(err) {
@@ -67,6 +68,7 @@ function productController(app){
 		2.admin access is required to modify a product, or delete a product
 	**/
 	productRouter.route('/:productId')
+	//in this route as well not fetching the reviewer's details
 	.get((req, res, next) => {
 		let errResponse;
 		products.findById(req.params.productId, (err, product) => {
@@ -142,13 +144,12 @@ function productController(app){
 	productRouter.route('/:productId/reviews')
 	.get((req, res, next) => {
 		let errResponse
-		products.findById(req.params.productId, {reviews:1, _id:0}, (err, data) => {
+		products.findById(req.params.productId, {reviews:1, _id:0}).populate('reviews.postedBy', {password:0}).exec((err, data) => {
 			if(err) {
 				customLogger('Error', 'Controller', __filename, err.stack);
         		errResponse = responseGenerator.generate(true, err.message, 500, null);
         		next(errResponse);
 			} else {
-				console.log('reviews received', data);
 				if(!data) {
 					customLogger('Error', 'Controller', __filename, 'Product not found');
 					errResponse = responseGenerator.generate(true, 'Product not found', 404, null);
@@ -165,9 +166,9 @@ function productController(app){
 	})
 	.post(auth.checkLoggedIn, validate('review'), (req, res, next) => {
 		let newReview = {
-			name : req.body.name,
-			comment : req.body.comment,
-			ratings : req.body.ratings,
+			postedBy : req.session.user._id,
+			comment  : req.body.comment,
+			ratings  : req.body.ratings,
 		}
 		let errResponse;
 		products.findByIdAndUpdate(req.params.productId, {$push: {reviews: newReview}}, {new:true}, (err, product) => {
@@ -182,37 +183,25 @@ function productController(app){
         			next(errResponse);
 				} else {
 					customLogger('Info', 'Controller', __filename, 'Successfully added the review');
-					products.aggregate(
-						{$match: {_id: product._id}},
-						{$project: {_id:0, "reviews.ratings":1}},
-						{$unwind:"$reviews"},
-						{$group: {_id:null, avgRating:{$avg:"$reviews.ratings"}}}, (err, data) => {
+					products.getAvgRatings(product._id, (avgRating) => {
+						products.findByIdAndUpdate(product._id, {ratings:avgRating}, {new:true}, (err, updatedProduct) => {
 							if(err) {
 								customLogger('Error', 'Controller', __filename, err.stack);
 	        					let errResponse = responseGenerator.generate(true, err.message, 500, null);
 	        					next(errResponse);		
 							} else {
-								customLogger('Info', 'Controller', __filename, 'Aggregation query successfully performed to get average ratings');
-								products.findByIdAndUpdate(product._id, {ratings:data[0].avgRating}, {new:true}, (err, updatedProduct) => {
-									if(err) {
-										customLogger('Error', 'Controller', __filename, err.stack);
-			        					let errResponse = responseGenerator.generate(true, err.message, 500, null);
-			        					next(errResponse);		
-									} else {
-										customLogger('Info', 'Controller', __filename, 'Updated the product with average ratings');
-										res.send(responseGenerator.generate(false, 'Added review and updated the product with average ratings', 200, updatedProduct));
-									}
-								});
+								customLogger('Info', 'Controller', __filename, 'Updated the product with average ratings');
+								res.send(responseGenerator.generate(false, 'Added review and updated the product with average ratings', 200, updatedProduct));
 							}
-						}
-					);
+						});
+					});
 				}
 			}
 		});
 	})
 	.delete(auth.checkAdmin, (req, res, next) => {
 		let errResponse;
-		products.findByIdAndUpdate(req.params.productId, {"reviews":[]}, {new:true}, (err, product) => {
+		products.findByIdAndUpdate(req.params.productId, {"reviews":[], "ratings":0}, {new:true}, (err, product) => {
 			if(err) {
 				customLogger('Error', 'Controller', __filename, err.stack);
         		errResponse = responseGenerator.generate(true, err.message, 500, null);
@@ -233,13 +222,149 @@ function productController(app){
 
 
 	/**
-		route for the sub-document level
-		1.unrestricted route for viewing all reviews of a product
-		2.registered user can only add a review to a product, after review is added, 
+		route for the nested sub-document level
+		1.unrestricted route for viewing a specific review of a product, it involves fetching all the details of it, including the user details
+		2.registered user can only modify the review to a product, after review is updated, 
 		  the average rating is calculated for the product using aggregation and it is updated for the product
-		3.admin user can delete all reviews of a product at once
+		3.registered user can delete a specific review of a product at once and then aggregation query is performed to update avg ratings
+		4.for points 2 and 3, the operations could be performed only by the user to which the review belongs.
 	**/
-	productRouter.route(':/productId/reviews/:reviewId');
+	productRouter.route('/:productId/reviews/:reviewId')
+	.get((req, res, next) => {
+		let errResponse;
+		products.findById(req.params.productId).populate('reviews.postedBy').exec((err, product) => {
+			if(err) {
+				customLogger('Error', 'Controller', __filename, err.stack);
+				errResponse = responseGenerator.generate(true, err.message, 500, null);
+				next(errResponse);
+			} else {
+				if(!product) {
+					customLogger('Error', 'Controller', __filename, 'Product not found');
+					errResponse = responseGenerator.generate(true, 'Product not found', 404, null);
+					next(errResponse);
+				} else {
+					let review = product.reviews.id(req.params.reviewId);
+					if(!review) {
+						customLogger('Error', 'Controller', __filename, 'Review not found');
+						errResponse = responseGenerator.generate(true, 'Review not found', 404, null);
+						next(errResponse);
+					} else {
+						customLogger('Info', 'Controller', __filename, 'Fetched a particular review for the product');
+						res.send(responseGenerator.generate(false, 'Fetched a particular review for the product', 200, review));
+					}
+				}
+			}
+		});
+	})
+	.put(auth.checkLoggedIn, (req, res, next) => {
+		let errResponse;
+		products.findById(req.params.productId, (err, product) => {
+			if(err) {
+				customLogger('Error', 'Controller', __filename, err.stack);
+				errResponse = responseGenerator.generate(true, err.message, 500, null);
+				next(errResponse);
+			} else {
+				if(!product) {
+					customLogger('Error', 'Controller', __filename, 'Product not found');
+					errResponse = responseGenerator.generate(true, 'Product not found', 404, null);
+					next(errResponse);
+				} else {
+					let review = product.reviews.id(req.params.reviewId);
+					if(!review) {
+						customLogger('Error', 'Controller', __filename, 'Review not found');
+						errResponse = responseGenerator.generate(true, 'Review not found', 404, null);
+						next(errResponse);
+					} else {
+						console.log('user id', req.session.user._id);
+						console.log('postedBy', review);
+						if(req.session.user._id == review.postedBy) {
+							let review = product.reviews.id(req.params.reviewId);
+							req.body.comment ? (review.comment = req.body.comment) : '';
+							req.body.ratings ? (review.ratings = req.body.ratings) : '';
+							product.save((err, resp) => {
+								if(err) {
+									customLogger('Error', 'Controller', __filename, err.stack);
+									errResponse = responseGenerator.generate(true, err.message, 500, null);
+									next(errResponse);
+								} else {
+									products.getAvgRatings(product._id, (avgRating) => {
+										product.ratings = avgRating;
+										product.save({"reviews":1},(err, data) => {
+											if(err) {
+												customLogger('Error', 'Controller', __filename, err.stack);
+												errResponse = responseGenerator.generate(true, err.message, 500, null);
+												next(errResponse);
+											} else {
+												customLogger('Info', 'Controller', __filename, 'Edited a particular review for the product and updated the ratings');
+												res.send(responseGenerator.generate(false, 'Edited a particular review for the product and updated the ratings', 200, data.reviews.id(req.params.reviewId)));
+											}
+										});
+									});			
+								}
+							})
+						} else {
+							customLogger('Error', 'Controller', __filename, 'You are not authorised to edit it');
+							errResponse = responseGenerator.generate(true, 'You are not authorised to edit it', 403, null);
+							next(errResponse);
+						}
+					}
+				}
+			}
+		});
+	})
+	.delete(auth.checkLoggedIn, (req, res, next) => {
+		let errResponse;
+		products.findById(req.params.productId, (err, product) => {
+			if(err) {
+				customLogger('Error', 'Controller', __filename, err.stack);
+				errResponse = responseGenerator.generate(true, err.message, 500, null);
+				next(errResponse);
+			} else {
+				if(!product) {
+					customLogger('Error', 'Controller', __filename, 'Product not found');
+					errResponse = responseGenerator.generate(true, 'Product not found', 404, null);
+					next(errResponse);
+				} else {
+					let review = product.reviews.id(req.params.reviewId);
+					if(!review) {
+						customLogger('Error', 'Controller', __filename, 'Review not found');
+						errResponse = responseGenerator.generate(true, 'Review not found', 404, null);
+						next(errResponse);
+					} else {
+						if(req.session.user._id == review.postedBy) {
+							review.remove();
+							product.save((err, data) => {
+								if(err) {
+									customLogger('Error', 'Controller', __filename, err.stack);
+									errResponse = responseGenerator.generate(true, err.message, 500, null);
+									next(errResponse);
+								} else {
+									products.getAvgRatings(product._id, (avgRating) => {
+										product.ratings = avgRating;
+										product.save((err, resp) => {
+											if(err) {
+												customLogger('Error', 'Controller', __filename, err.stack);
+												errResponse = responseGenerator.generate(true, err.message, 500, null);
+												next(errResponse);
+											} else {
+												customLogger('Info', 'Controller', __filename, 'Deleted a particular review for the product and updated avg ratings');
+												res.send(responseGenerator.generate(false, 'Deleted a particular review for the product and updated avg ratings', 200, resp.reviews));
+											}
+										});
+									});			
+								}
+							});
+						} else {
+							customLogger('Error', 'Controller', __filename, 'You are not authorised to delete it');
+							errResponse = responseGenerator.generate(true, 'You are not authorised to delete it', 403, null);
+							next(errResponse);
+						}
+					}
+				}
+			}
+		});
+	});
+
 
 	app.use('/products', productRouter);
 }

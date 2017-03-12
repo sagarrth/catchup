@@ -30,6 +30,10 @@ function userController(app){
         next(errResponse);
       } else {
         customLogger('Info', 'Controller', __filename, 'User successfully added to database');
+        //Cloned the user object returned from the callback. The reason being the object was an instance of mongoose model
+        //deleting the password property on it had no effect, it exposed the password getter method on its prototype and still
+        //password property was accessible
+        user = JSON.parse(JSON.stringify(user));
         delete user.password;
         req.session.user = user;
         res.send(responseGenerator.generate(false, 'User successfully added to database', 200, user));
@@ -46,6 +50,10 @@ function userController(app){
         next(errResponse);
       } else {
         customLogger('Info', 'Controller', __filename, 'User successfully logged in');
+        //Cloned the user object returned from the callback. The reason being the object was an instance of mongoose model
+        //deleting the password property on it had no effect, it exposed the password getter method on its prototype and still
+        //password property was accessible
+        user = JSON.parse(JSON.stringify(user));
         delete user.password;
         req.session.user = user;
         res.send(responseGenerator.generate(false, 'User successfully logged in', 200, user));

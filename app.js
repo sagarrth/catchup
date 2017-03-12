@@ -45,7 +45,7 @@ try {
   //dynamically load the controllers
   fs.readdirSync('./app/controllers').forEach(function (fileName) {
     if(fileName.indexOf('.js')>-1){
-      var route = require(path.join(__dirname,'./app/controllers',fileName));
+      let route = require(path.join(__dirname,'./app/controllers',fileName));
       route.controller(app);
     }
   });
@@ -59,7 +59,7 @@ try {
   });
 
 } catch (error) {
-  customLogger('Info', 'Entry Point', __filename, err);
+  customLogger('Info', 'Entry Point', __filename, error);
 } finally {
   //start the server and listen on port 3000
   app.listen(3000, function () {

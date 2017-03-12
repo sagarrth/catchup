@@ -12,7 +12,7 @@ function getManadatoryParams(type, req) {
 		else if(req.url==='/login')
 			mandatoryParams = ['email', 'password'];
 	} else if(type==='review') {
-		mandatoryParams = ['name', 'comment', 'ratings'];
+		mandatoryParams = ['comment', 'ratings'];
 	}
 	return mandatoryParams;
 }

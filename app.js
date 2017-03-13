@@ -8,8 +8,11 @@ const fs            =    require('fs');
 const path          =    require('path');
 const auth          =    require('./middleware/auth');
 const config        =    require('./config');
-
+const helmet        =    require('helmet');
 const app           =    express();
+
+//middleware for security
+app.use(helmet());
 
 //middleware for logging
 app.use(logger('dev'));
@@ -24,9 +27,8 @@ app.use(session({
   name               :   'myCustomCookie',
   secret             :   config.secret,
   resave             :   true,
-  httpOnly           :   true,
-  saveUninitialized  :   true,
-  cookie             :   {secure : false}
+  saveUninitialized  :   false,
+  cookie             :   {secure : false, httpOnly : true, maxAge:900000}
 }));
 
 //create a db connection

@@ -56,7 +56,7 @@ function productController(app){
         		next(errResponse);
 			} else {
 				customLogger('Info', 'Controller', __filename, resp);
-				res.send(responseGenerator.generate(false, 'Product collection dropped', 200, null));	
+				res.send(responseGenerator.generate(false, 'Product collection dropped', 200, resp));	
 			}
 		});
 	});

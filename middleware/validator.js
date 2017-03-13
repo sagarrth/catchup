@@ -13,6 +13,8 @@ function getManadatoryParams(type, req) {
 			mandatoryParams = ['email', 'password'];
 	} else if(type==='review') {
 		mandatoryParams = ['comment', 'ratings'];
+	} else if(type==='cart') {
+		mandatoryParams = ['listOfProducts']
 	}
 	return mandatoryParams;
 }

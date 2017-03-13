@@ -1,5 +1,6 @@
-const express = require('express');
+const express 			=  require('express');
 const responseGenerator =  require('./../libs/responseGenerator');
+const customLogger 		=  require('./../libs/customLogger');
 
 function getManadatoryParams(type, req) {
 	let mandatoryParams = [];
@@ -11,6 +12,10 @@ function getManadatoryParams(type, req) {
 			mandatoryParams = ['firstName', 'lastName', 'email', 'phone', 'password'];
 		else if(req.url==='/login')
 			mandatoryParams = ['email', 'password'];
+		else if(req.url.includes('reset'))
+			mandatoryParams = ['password'];
+		else if(req.url==='/forgotPassword') 
+			mandatoryParams = ['email'];
 	} else if(type==='review') {
 		mandatoryParams = ['comment', 'ratings'];
 	} else if(type==='cart') {
@@ -24,7 +29,8 @@ function validate(type) {
 		let mandatoryParams = getManadatoryParams(type, req);
 		for(let i = 0; i<mandatoryParams.length; i++){
 			if(!(mandatoryParams[i] in req.body)){
-				let errResponse = responseGenerator.generate(true, 'mandatory parameters missing', 401, null);
+				customLogger('Error', 'Validator', __filename, 'mandatory parameters missing');
+				let errResponse = responseGenerator.generate(true, 'mandatory parameters missing', 403, null);
 				next(errResponse);
 			}
 		}

@@ -3,13 +3,15 @@ const bcrypt	=	require('bcryptjs');
 const customLogger = require('./../../libs/customLogger');
 
 const UserSchema = new mongoose.Schema({
-  userName        : {type:String, unique:true, trim:true},
-  firstName       : {type:String, required:true, trim:true},
-  lastName        : {type:String, required:true, trim:true},
-  email           : {type:String, unique:true, required:true, trim:true},
-  phone           : {type:Number, unique:true, required:true, trim:true},
-  password        : {type:String, required:true},
-  type			  : {type:String, default:'standard'}
+  userName        		: {type:String, unique:true, trim:true},
+  firstName       		: {type:String, required:true, trim:true},
+  lastName        		: {type:String, required:true, trim:true},
+  email           		: {type:String, unique:true, required:true, trim:true},
+  phone           		: {type:Number, unique:true, required:true, trim:true},
+  password        		: {type:String, required:true},
+  type			  		: {type:String, default:'standard'},
+  resetPasswordToken 	: {type:String},
+  resetPasswordExpires  : {type:Date}
 });
 
 

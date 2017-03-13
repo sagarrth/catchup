@@ -7,13 +7,16 @@ const auth              =   require('./../../middleware/auth');
 const validate          =   require('./../../middleware/validator');
 const customLogger      =   require('./../../libs/customLogger');
 const shortid           =   require('shortid');
+const crypto            =   require('crypto');
+const nodemailer        =   require('nodemailer');
 const userRouter        =   express.Router();
 const users             =   mongoose.model('User');
 
 function userController(app){
 
   //route to signup
-  userRouter.post('/signup', validate('user'), (req, res, next) => {
+  userRouter.post('/signup', validate('user'),
+   (req, res, next) => {
     let newUser = {
       firstName :   req.body.firstName,
       lastName  :   req.body.lastName,
@@ -101,7 +104,7 @@ function userController(app){
   });
 
   //route to logout
-  userRouter.get('/logout', function(req, res, next){
+  userRouter.get('/logout', (req, res, next) => {
       req.session.destroy( (err) => {
         if(err) {
           customLogger('Error', 'Controller', __filename, err.stack);
@@ -114,7 +117,93 @@ function userController(app){
       });
   });
 
-  //userRouter.post('/forgotPassword', )
+  //route to send mail for forgotPassword
+  //inspiration taken from various articles on the web
+  userRouter.post('/forgotPassword', (req, res, next) => {
+    crypto.randomBytes(15, (err, buff) => {
+      let token = buff.toString('hex');
+      customLogger('Info', 'Controller', __filename, 'Token generated - '+token);
+      users.findOne({email: req.body.email}, (err, user) => {
+        if(!user) {
+          customLogger('Error', 'Controller', __filename, err.stack);
+          let errResponse = responseGenerator.generate(true, err.message, 404, null);
+          next(errResponse);
+        } else {
+          user.resetPasswordToken = token;
+          user.resetPasswordExpires = Date.now() + 3600000;
+          user.save(function(err) {
+            if(err) {
+              customLogger('Error', 'Controller', __filename, err.stack);
+              let errResponse = responseGenerator.generate(true, err.message, 404, null);
+              next(errResponse);
+            } else {
+                customLogger('Info', 'Controller', __filename, 'User saved with resetPasswordToken and resetPasswordExpires');
+                const smtpTransport = nodemailer.createTransport({
+                  service: 'SendPulse',
+                  auth: {
+                    user: 'saagarruth0512@gmail.com',
+                    pass: 'o7Cdp4gRoQcftmT'
+                  }
+                });
+                const mailOptions = {
+                  to: user.email,
+                  from: 'saagarruth0512@gmail.com',
+                  subject: 'Catchup Password Reset',
+                  text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                    'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                    'http://' + req.headers.host + '/users/reset/' + token + '\n\n' +
+                    'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+                };
+                smtpTransport.sendMail(mailOptions, function(err) {
+                  if(err) {
+                    customLogger('Error', 'Controller', __filename, err.stack);
+                    let errResponse = responseGenerator.generate(true, err.message, 404, null);
+                    next(errResponse);
+                  } else {
+                    customLogger('Info', 'Controller', __filename, 'Password reset mail successfully sent');
+                    //sometimes i didnt receive the mail, so for testing purpose i have sent the link in the response
+                    //by using that link I am able to change the password
+                    res.send(responseGenerator.generate(false, 'Password reset mail successfully sent', 200, 'http://' + req.headers.host + '/reset/' + token));
+                  }
+                });
+            }
+          });
+        }
+      });
+    });
+  });
+
+  //route to reset password
+  userRouter.post('/reset/:token', (req, res, next) => {
+    let errResponse;
+    users.findOne({"resetPasswordToken": req.params.token, "resetPasswordExpires":{$gt: Date.now()}}, (err, user) => {
+      if(err) {
+        customLogger('Error', 'Controller', __filename, err.stack);
+        errResponse = responseGenerator.generate(true, err.message, 500, null);
+        next(errResponse);
+      } else {
+        if(!user) {
+          customLogger('Error', 'Controller', __filename, 'User not found');
+          errResponse = responseGenerator.generate(true, 'User not found', 404, null);
+          next(errResponse);
+        } else {
+          user.password = req.body.password;
+          user.resetPasswordExpires = null;
+          user.resetPasswordToken = null;
+          user.save((err) => {
+            if(err) {
+              customLogger('Error', 'Controller', __filename, err.stack);
+              errResponse = responseGenerator.generate(true, err.message, 500, null);
+              next(errResponse);
+            } else {
+              customLogger('Info', 'Controller', __filename, 'successfully changed password');
+              res.send(responseGenerator.generate(false, 'successfully changed password', 200, null));
+            }
+          });
+        }
+      }
+    });
+  });
 
   app.use('/users', userRouter);
 }

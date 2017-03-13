@@ -119,7 +119,7 @@ function userController(app){
 
   //route to send mail for forgotPassword
   //inspiration taken from various articles on the web
-  userRouter.post('/forgotPassword', (req, res, next) => {
+  userRouter.post('/forgotPassword', validate('user'), (req, res, next) => {
     crypto.randomBytes(15, (err, buff) => {
       let token = buff.toString('hex');
       customLogger('Info', 'Controller', __filename, 'Token generated - '+token);
@@ -157,13 +157,13 @@ function userController(app){
                 smtpTransport.sendMail(mailOptions, function(err) {
                   if(err) {
                     customLogger('Error', 'Controller', __filename, err.stack);
-                    let errResponse = responseGenerator.generate(true, err.message, 404, null);
+                    let errResponse = responseGenerator.generate(true, err.message, 500, null);
                     next(errResponse);
                   } else {
                     customLogger('Info', 'Controller', __filename, 'Password reset mail successfully sent');
                     //sometimes i didnt receive the mail, so for testing purpose i have sent the link in the response
                     //by using that link I am able to change the password
-                    res.send(responseGenerator.generate(false, 'Password reset mail successfully sent', 200, 'http://' + req.headers.host + '/reset/' + token));
+                    res.send(responseGenerator.generate(false, 'Password reset mail successfully sent', 200, 'http://' + req.headers.host + '/users/reset/' + token));
                   }
                 });
             }
@@ -174,7 +174,7 @@ function userController(app){
   });
 
   //route to reset password
-  userRouter.post('/reset/:token', (req, res, next) => {
+  userRouter.post('/reset/:token', validate('user'), (req, res, next) => {
     let errResponse;
     users.findOne({"resetPasswordToken": req.params.token, "resetPasswordExpires":{$gt: Date.now()}}, (err, user) => {
       if(err) {
